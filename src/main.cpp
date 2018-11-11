@@ -33,6 +33,8 @@ int main() {
 
   double sigma_pos[3] = {0.3, 0.3, 0.01}; // GPS measurement uncertainty [x [m], y [m], theta [rad]]
   double sigma_landmark[2] = {0.3, 0.3}; // Landmark measurement uncertainty [x [m], y [m]]
+  double sigma_velocity = 0.1;
+  double sigma_yaw_rate = 0.001;
 
   // Read map data
   Map map;
@@ -44,8 +46,12 @@ int main() {
   // Create particle filter
   ParticleFilter pf;
 
+  //pf.init(10, 10, 0, sigma_pos);
+  //pf.prediction(delta_t, sigma_pos, 10.0, 0.1);
+
   h.onMessage(
-          [&pf, &map, &delta_t, &sensor_range, &sigma_pos, &sigma_landmark](uWS::WebSocket<uWS::SERVER> ws, char *data,
+          [&pf, &map, &delta_t, &sensor_range, &sigma_pos, &sigma_landmark,
+           &sigma_velocity, &sigma_yaw_rate](uWS::WebSocket<uWS::SERVER> ws, char *data,
                                                                             size_t length, uWS::OpCode opCode) {
               // "42" at the start of the message means there's a websocket message event.
               // The 4 signifies a websocket message
@@ -77,7 +83,7 @@ int main() {
                       double previous_velocity = std::stod(j[1]["previous_velocity"].get<std::string>());
                       double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<std::string>());
 
-                      pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
+                      pf.prediction(delta_t, previous_velocity, previous_yawrate, sigma_velocity, sigma_yaw_rate);
                     }
 
                     // receive noisy observation data from the simulator
@@ -124,8 +130,7 @@ int main() {
                       }
                       weight_sum += particles[i].weight;
                     }
-                    cout << "highest w " << highest_weight << endl;
-                    cout << "average w " << weight_sum / num_particles << endl;
+                    cout << "w (max, avg) = (" << highest_weight << ", " << weight_sum / num_particles << ")" << endl;
 
                     json msgJson;
                     msgJson["best_particle_x"] = best_particle.x;

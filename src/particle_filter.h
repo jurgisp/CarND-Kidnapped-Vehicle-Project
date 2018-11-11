@@ -29,12 +29,8 @@ class ParticleFilter {
     // Number of particles to draw
     int num_particles;
 
-
     // Flag, if filter is initialized
     bool is_initialized;
-
-    // Vector of weights of all particles
-    std::vector<double> weights;
 
 public:
 
@@ -63,20 +59,13 @@ public:
      * prediction Predicts the state for the next time step
      *   using the process model.
      * @param delta_t Time between time step t and t+1 in measurements [s]
-     * @param std_pos[] Array of dimension 3 [standard deviation of x [m], standard deviation of y [m]
-     *   standard deviation of yaw [rad]]
      * @param velocity Velocity of car from t to t+1 [m/s]
      * @param yaw_rate Yaw rate of car from t to t+1 [rad/s]
+     * @param std_velocity std for velocity model
+     * @param std_yaw_rate std for yaw rate model
      */
-    void prediction(double delta_t, double std_pos[], double velocity, double yaw_rate);
-
-    /**
-     * dataAssociation Finds which observations correspond to which landmarks (likely by using
-     *   a nearest-neighbors data association).
-     * @param predicted Vector of predicted landmark observations
-     * @param observations Vector of landmark observations
-     */
-    void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs> &observations);
+    void prediction(double delta_t, double velocity, double yaw_rate,
+            double std_velocity, double std_yaw_rate);
 
     /**
      * updateWeights Updates the weights for each particle based on the likelihood of the
@@ -94,14 +83,6 @@ public:
      *   the new set of particles.
      */
     void resample();
-
-    /*
-     * Set a particles list of associations, along with the associations calculated world x,y coordinates
-     * This can be a very useful debugging tool to make sure transformations are correct and assocations correctly connected
-     */
-    Particle SetAssociations(Particle &particle, const std::vector<int> &associations,
-                             const std::vector<double> &sense_x, const std::vector<double> &sense_y);
-
 
     std::string getAssociations(Particle best);
 
